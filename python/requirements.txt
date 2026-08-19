@@ -1,0 +1,71 @@
+# ============================================================================
+# Python Chatbot Backend - Stable Dependencies (Python 3.11, Windows + CUDA)
+# ============================================================================
+# Last Updated: 2026-08-13
+# Verified: torch 2.5.1+cu121, NumPy 1.26.4 (NOT 2.x), bitsandbytes 0.43.3
+# GPU: NVIDIA RTX 3050 | Driver CUDA 13.2 | Toolkit CUDA 12.1 (bundled in wheel)
+# ============================================================================
+
+# ---- WEB FRAMEWORK ----
+fastapi==0.115.0              # REST API framework - required for /chat, /upload endpoints
+uvicorn==0.30.6               # ASGI server - runs FastAPI service
+pydantic==2.7.0               # Data validation - FastAPI request/response models
+python-multipart==0.0.9       # File upload - required by FastAPI for multipart form handling
+
+# ---- ENVIRONMENT ----
+python-dotenv==1.0.1          # Load .env - required by model.py for HuggingFace token
+
+# ---- MACHINE LEARNING (Deep Learning) ----
+# IMPORTANT: Install with the CUDA index URL — NOT from PyPI (PyPI has CPU-only builds)
+# Run: pip install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cu121
+torch==2.5.1                  # PyTorch 2.5.1 + CUDA 12.1 — GPU-enabled build
+torchvision==0.20.1           # Vision ops paired with torch 2.5.1
+torchaudio==2.5.1             # Audio ops paired with torch 2.5.1
+
+# ---- TRANSFORMERS (LLM) ----
+transformers==4.46.3          # HuggingFace transformers - model loading (gemma-2b-it)
+                              # 4.46.x fixes .to() calls on bitsandbytes 4-bit layers during generate()
+                              # Used: AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
+
+accelerate==1.14.0            # Required for device_map="auto" and low_cpu_mem_usage=True
+
+bitsandbytes==0.43.3          # 4-bit quantization - required by model.py for memory efficiency
+                              # 0.43.0+ adds proper Windows CUDA support (previously Linux-only)
+                              # Requires CUDA-enabled torch (see above)
+
+# ---- EMBEDDINGS & RAG ----
+sentence-transformers==3.0.1  # Sentence embeddings - used by rag_util.py for Encoder
+                              # Model: sentence-transformers/all-MiniLM-L12-v2
+
+faiss-cpu==1.8.0.post1        # Vector database - FAISS CPU version for Windows compatibility
+                              # Alternative: Use GPU version if on Linux with CUDA
+
+# ---- LANGCHAIN (RAG Framework) ----
+langchain==0.2.16             # LangChain core - framework for RAG pipeline
+langchain-community==0.2.16   # Community integrations - PyPDFLoader, HuggingFaceEmbeddings
+                              # Note: Text splitters moved to langchain_text_splitters
+
+langchain-text-splitters==0.2.4   # Text chunking - RecursiveCharacterTextSplitter
+                              # Moved from langchain in 0.2.x, now separate package
+
+# ---- PDF PROCESSING ----
+pypdf==4.3.1                  # PDF parsing - used by PyPDFLoader in langchain_community
+                              # Handles PDF loading for RAG document processing
+
+# ---- NUMERICAL COMPUTING ----
+numpy>=1.26.4,<2.0            # NumPy pinned to 1.x — faiss-cpu and langchain 0.2.x
+                              # require numpy<2; torchvision pulls 2.x if unconstrained
+                              # CRITICAL: always install AFTER torch to override the 2.x pull
+
+# ============================================================================
+# NOTES:
+# ============================================================================
+# 1. All versions tested on Python 3.11 + Windows + NVIDIA RTX 3050
+# 2. NumPy MUST be <2.0 — faiss-cpu 1.8 and langchain 0.2.x both enforce this
+# 3. Torch 2.5.1+cu121 wheel bundles its own CUDA 12.1 runtime (no system install needed)
+# 4. Always install torch first, then immediately pin numpy<2 (torchvision pulls numpy 2.x)
+#    Correct order: pip install torch... --index-url ..., then pip install numpy>=1.26.4,<2
+# 5. BitsAndBytes 0.43.3+ has Windows CUDA support; 0.41.x does NOT work on Windows GPU
+# 6. LangChain 0.2.16 uses langchain_text_splitters (separate package)
+# 7. FAISS CPU chosen for broader Windows compatibility
+# ============================================================================
